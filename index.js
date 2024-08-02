@@ -63,21 +63,109 @@
 //   console.log(`Server is running on port ${PORT}`);
 // });
 
+// const express = require("express");
+// const cors = require("cors");
+// const app = express();
+
+// app.use(express.json());
+
+// app.use(
+//   cors({
+//     // origin: 'http://localhost:3000',
+//     origin: "*",
+//   })
+// );
+// const PORT = process.env.PORT || 3000;
+
+// function processData(data) {
+//   const numbers = [];
+//   const alphabets = [];
+
+//   data.forEach((item) => {
+//     if (!isNaN(item)) {
+//       numbers.push(item);
+//     } else if (/^[a-zA-Z]$/.test(item)) {
+//       alphabets.push(item);
+//     }
+//   });
+
+//   const highestAlphabet = alphabets.length
+//     ? [
+//         alphabets.sort((a, b) =>
+//           a.toLowerCase() < b.toLowerCase() ? 1 : -1
+//         )[0],
+//       ]
+//     : [];
+//   return { numbers, alphabets, highestAlphabet };
+// }
+
+// app.post("/bfhl", (req, res) => {
+//   const { data } = req.body;
+//   if (!data || !Array.isArray(data)) {
+//     return res
+//       .status(400)
+//       .json({ is_success: false, message: "Invalid input" });
+//   }
+
+//   const { numbers, alphabets, highestAlphabet } = processData(data);
+
+//   const response = {
+//     is_success: true,
+//     user_id: "DineshSaiSandeepDesu_18072003",
+//     email: "dineshsaisandeep_desu@srmap.edu.in",
+//     roll_number: "AP21110011517",
+//     numbers,
+//     alphabets,
+//     highest_alphabet: highestAlphabet,
+//   };
+
+//   res.status(200).json(response);
+// });
+
+// app.get("/bfhl", (req, res) => {
+//   res.status(200).json({ operation_code: 1 });
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const port = 3000;
+
+// Enable CORS for all routes
+
+app.use(cors());
 
 app.use(express.json());
 
-app.use(
-  cors({
-    // origin: 'http://localhost:3000',
-    origin: "*",
-  })
-);
-const PORT = process.env.PORT || 3000;
+const userId = "DineshSaiSandeepDesu_18072003"; // Hardcoded user_id
 
-function processData(data) {
+// GET endpoint
+app.get("/", (req, res) => {
+  res.json({ operation_code: 1 });
+});
+
+// POST endpoint
+app.post("/", (req, res) => {
+  res.json({ request_type: "POST" });
+});
+
+// POST /bfhl endpoint
+app.post("/bfhl", (req, res) => {
+  const { data } = req.body;
+
+  // Input validation
+  if (!Array.isArray(data)) {
+    return res.status(400).json({
+      is_success: false,
+      user_id: userId,
+      message: "Invalid input format. 'data' should be an array.",
+    });
+  }
+
   const numbers = [];
   const alphabets = [];
 
@@ -89,41 +177,38 @@ function processData(data) {
     }
   });
 
-  const highestAlphabet = alphabets.length
-    ? [
-        alphabets.sort((a, b) =>
-          a.toLowerCase() < b.toLowerCase() ? 1 : -1
-        )[0],
-      ]
-    : [];
-  return { numbers, alphabets, highestAlphabet };
-}
+  const highestAlphabet =
+    alphabets.length > 0
+      ? [
+          alphabets.sort((a, b) =>
+            b.localeCompare(a, undefined, { sensitivity: "base" })
+          )[0],
+        ]
+      : [];
 
-app.post("/bfhl", (req, res) => {
-  const { data } = req.body;
-  if (!data || !Array.isArray(data)) {
-    return res
-      .status(400)
-      .json({ is_success: false, message: "Invalid input" });
-  }
-
-  const { numbers, alphabets, highestAlphabet } = processData(data);
-
-  const response = {
+  res.json({
     is_success: true,
-    user_id: "DineshSaiSandeepDesu_18072003",
+    user_id: userId,
     email: "dineshsaisandeep_desu@srmap.edu.in",
     roll_number: "AP21110011517",
-    numbers,
-    alphabets,
+    numbers: numbers,
+    alphabets: alphabets,
     highest_alphabet: highestAlphabet,
-  };
-
-  res.status(200).json(response);
+  });
 });
 
+//  /bfhl  GET end-point
 app.get("/bfhl", (req, res) => {
-  res.status(200).json({ operation_code: 1 });
+  res.json({
+    is_success: true,
+    operation_code: 1,
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ is_success: false, message: "Something went wrong!" });
 });
 
 app.listen(PORT, () => {
